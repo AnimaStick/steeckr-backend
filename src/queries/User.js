@@ -1,13 +1,13 @@
 const connection = require('../config/database');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
-const validate = require('../lib/Validate');
+const validate = require('../lib/validate');
 const path = require('path');
 const mmm = require('mmmagic'),
 Magic = mmm.Magic;
 let magic = new Magic(mmm.MAGIC_MIME_TYPE);
-
-const FileActions = require("../lib/FileActions");
+const { encryptPassword } = require('../lib/encryptPassword');
+const FileActions = require("../lib/fileActions");
 
 function createUser(req, res, fileExtension){
     const {
@@ -18,7 +18,7 @@ function createUser(req, res, fileExtension){
         description
     } = req.body;
 
-    // const hashedPassword = bcrypt.hashSync(password);
+    const hashedPassword = encryptPassword(password);
 
     //VERIFICAÇÕES OBRIGATÓRIAS
     if(!username)
@@ -37,14 +37,12 @@ function createUser(req, res, fileExtension){
 
     //MONTAGEM DO INSERT
     let insertQueryFields = `INSERT INTO "User" ("username", "email", "password", birthday`;
-    let insertQueryValues = `VALUES ('${username}', '${email}', '${password}', '${birthday}'`;
+    let insertQueryValues = `VALUES ('${username}', '${email}', '${hashedPassword}', '${birthday}'`;
     if(description){
         insertQueryFields += ",description";
         insertQueryValues += `,'${description}'`;
     }
-
     let filePath;
-    let realPath;
     if(req.file){
         let fileName = `${Date.now()}-${username}.${fileExtension}`;
         filePath = `./files/profile/${fileName}`;
@@ -69,6 +67,7 @@ function createUser(req, res, fileExtension){
             return res.status(400).json({ error: "Usuário não inserido, favor tentar novamente" });
         }
     }).catch(error => {
+        console.log(error);
         if(req.file)
             FileActions.deleteFiles([filePath]);
         return res.status(400).json({error: error});
