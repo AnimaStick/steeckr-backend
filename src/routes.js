@@ -20,7 +20,7 @@ router.get('/getUser', async (request, response) => {
     
 
 });
-router.get("/login", User.login);
+router.post("/login", User.login);
 router.post("/users", uploadProfilePic.single("profilePic"), User.create);
 
 module.exports = router;

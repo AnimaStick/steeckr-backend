@@ -25,9 +25,9 @@ function createUser(req, res, fileExtension){
         return res.status(400).json({message: "usuário vazio"});
     if(!email || !validate.validateEmail(email))
         return res.status(400).json({message: "email incorreto"});
-    if(!password)
-        return res.status(400).json({message: "senha vazia"});
-
+    if(!password || password.length > 30)
+        return res.status(400).json({message: "senha vazia/senha muito grande (o limite é 30 caracteres)"});
+    //VERIFICAÇÃO IDADE > 18
     let minimumAge = new Date();
     minimumAge.setFullYear(minimumAge.getFullYear()-18);
     let dateFields = birthday.split("-");
@@ -42,6 +42,7 @@ function createUser(req, res, fileExtension){
         insertQueryFields += ",description";
         insertQueryValues += `,'${description}'`;
     }
+    //SALVANDO IMAGEM EM /files/profile E ADICIONANDO NO INSERT O PATH
     let filePath;
     if(req.file){
         let fileName = `${Date.now()}-${username}.${fileExtension}`;
@@ -58,6 +59,8 @@ function createUser(req, res, fileExtension){
 
     insertQueryFields += ")";
     insertQueryValues += ")";
+
+    //EXECUÇÃO DA QUERY
     connection.query(`${insertQueryFields} ${insertQueryValues}`).then(result => {
         if (result.rowCount)
             return res.status(201).json({ message: "Usuário criado com sucesso" });
@@ -78,22 +81,36 @@ module.exports = {
 
     async login(req, res){
 
-        // const {email, password} = req.query;
-
-        // const hashedPassword = bcrypt.hash(password);
-
-        // const {rows} = connection.query(
-        //     `SELECT id FROM "User" 
-        //     WHERE email=${email} AND password=${hashedPassword}`);
-
-        // if(rows.length == 0){
-        //     return res.status(404).json({message:"Usuário/senha incorretos"});
-        // }
+        const {email, password} = req.body;
+   
+        if(!email || !password)
+            return res.status(400).json({error:"email e/ou senha vazios/inválidos"});
+        try{
+            const {rows} = await connection.query(
+                `SELECT password FROM "User" 
+                WHERE email='${email}'`);
+    
+            if(rows.length == 0){
+                return res.status(404).json({message:"Usuário/senha incorretos"});
+            }
+            else{
+                const validPass = await bcrypt.compare(password, rows[0].password);
+                if(validPass)
+                    return res.status(200).json({message:"logado"});
+                else
+                    return res.status(404).json({message:"Usuário/senha incorretos"});
+            }
+        }catch(e){
+            return res.status(400).json({error:"Erro interno"});
+        }
+        
 
     },
     create(req, res){
         const profilePic = req.file;
+        //DETECÇÃO SE IMAGEM DE PERFIL FOI ENVIADA
         if(req.file){
+            //DETECÇÃO SE ARQUIVO É UMA IMAGEM
             magic.detect(profilePic.buffer, (err, result) => {
                 if(err) throw err;
                 let nameAndExtension = result.split("/");
