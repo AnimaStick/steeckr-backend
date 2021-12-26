@@ -2,12 +2,12 @@ const connection = require('../config/database');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const validate = require('../lib/validate');
-const path = require('path');
 const mmm = require('mmmagic'),
 Magic = mmm.Magic;
 let magic = new Magic(mmm.MAGIC_MIME_TYPE);
 const { encryptPassword } = require('../lib/encryptPassword');
 const FileActions = require("../lib/fileActions");
+const QueryBuilder = require("../lib/queryBuilder");
 
 function createUser(req, res, fileExtension){
     const {
@@ -27,7 +27,8 @@ function createUser(req, res, fileExtension){
         return res.status(400).json({message: "email incorreto"});
     if(!password || password.length > 30)
         return res.status(400).json({message: "senha vazia/senha muito grande (o limite é 30 caracteres)"});
-    //VERIFICAÇÃO IDADE > 18
+    
+        //VERIFICAÇÃO IDADE > 18
     let minimumAge = new Date();
     minimumAge.setFullYear(minimumAge.getFullYear()-18);
     let dateFields = birthday.split("-");
@@ -36,13 +37,18 @@ function createUser(req, res, fileExtension){
         return res.status(400).json({message: "data de nascimento vazia/incorreta/não atingiu a idade mínima"});
 
     //MONTAGEM DO INSERT
-    let insertQueryFields = `INSERT INTO "User" ("username", "email", "password", birthday`;
-    let insertQueryValues = `VALUES ('${username}', '${email}', '${hashedPassword}', '${birthday}'`;
-    if(description){
-        insertQueryFields += ",description";
-        insertQueryValues += `,'${description}'`;
-    }
-    //SALVANDO IMAGEM EM /files/profile E ADICIONANDO NO INSERT O PATH
+    const userInsert = new QueryBuilder(
+        `"username","email","password",birthday`,
+        "$1, $2, $3, $4",
+        5,
+        "User",
+        [username, email, hashedPassword, birthday]
+    );
+
+    if(description)
+        userInsert.insertValue("description", description);
+
+    //SALVANDO IMAGEM EM /files/profile E ADICIONANDO NO INSERT O CAMINHO DELA
     let filePath;
     if(req.file){
         let fileName = `${Date.now()}-${username}.${fileExtension}`;
@@ -53,15 +59,10 @@ function createUser(req, res, fileExtension){
             console.log(e);
             return res.status(400).json({error: "Erro interno, favor tentar novamente"});
         }
-        insertQueryFields += `,"picture_path"`;
-        insertQueryValues += `, '${filePath}'`;
+        userInsert.insertValue("picture_path", filePath);
     }
-
-    insertQueryFields += ")";
-    insertQueryValues += ")";
-
     //EXECUÇÃO DA QUERY
-    connection.query(`${insertQueryFields} ${insertQueryValues}`).then(result => {
+    connection.query(userInsert.query).then(result => {
         if (result.rowCount)
             return res.status(201).json({ message: "Usuário criado com sucesso" });
         else{
@@ -86,21 +87,27 @@ module.exports = {
         if(!email || !password)
             return res.status(400).json({error:"email e/ou senha vazios/inválidos"});
         try{
-            const {rows} = await connection.query(
-                `SELECT password FROM "User" 
-                WHERE email='${email}'`);
+            const query = {
+                text: `SELECT id, password FROM "User"
+                WHERE email=$1`,
+                values: [email]
+            }
+            const {rows} = await connection.query(query);
     
             if(rows.length == 0){
                 return res.status(404).json({message:"Usuário/senha incorretos"});
             }
             else{
                 const validPass = await bcrypt.compare(password, rows[0].password);
-                if(validPass)
+                if(validPass){
+                    req.session.user = {id: rows[0].id};
                     return res.status(200).json({message:"logado"});
+                }
                 else
                     return res.status(404).json({message:"Usuário/senha incorretos"});
             }
         }catch(e){
+            console.log(e);
             return res.status(400).json({error:"Erro interno"});
         }
         
