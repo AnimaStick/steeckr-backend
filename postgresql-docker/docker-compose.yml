@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  postgres-container:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "suasenhaaqui"
+    ports:
+      - "15432:5432"
+    volumes:
+      - /home/gigagabriel/docker_postgresql
+    networks:
+      - postgres-compose-network
+      
+  pgadmin-container:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "email@email.email"
+      PGADMIN_DEFAULT_PASSWORD: "suasenhaaqui"
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres-container
+    networks:
+      - postgres-compose-network
+
+networks: 
+  postgres-compose-network:
+    driver: bridge
+

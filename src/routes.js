@@ -9,6 +9,7 @@ const multer = require('multer');
 const uploadProfilePic = multer();
 
 const auth = require("./lib/auth");
+const { query } = require('express');
 
 //USER ROUTES
 router.post("/login", User.login);
