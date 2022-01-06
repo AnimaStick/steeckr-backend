@@ -24,6 +24,7 @@ app.use(session({
 }))
 
 app.use(cors({
+    credentials: true,
     origin:`${process.env.APPLICATION_HOST}:${process.env.APPLICATION_PORT}` 
     //se quiser, pode comentar essa linha acima para testar se não estiver funcionando
 }));
@@ -33,4 +34,4 @@ app.use(routes);
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => console.log(`API running on port ${PORT} - DB HOST ${process.env.DB_HOST}`));
+app.listen(PORT, () => console.log(`API running on port ${PORT} - DB HOST ${process.env.DB_HOST} celsoportioli`));

@@ -4,19 +4,19 @@ services:
   postgres-container:
     image: postgres
     environment:
-      POSTGRES_PASSWORD: "suasenhaaqui"
+      POSTGRES_PASSWORD: "senha123"
     ports:
       - "15432:5432"
     volumes:
-      - /home/gigagabriel/docker_postgresql
+      - C:\Users\sallo\Desktop\Steeck\steeckr-backend\postgresql-docker
     networks:
       - postgres-compose-network
       
   pgadmin-container:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: "email@email.email"
-      PGADMIN_DEFAULT_PASSWORD: "suasenhaaqui"
+      PGADMIN_DEFAULT_EMAIL: "rfgvieira@usp.br"
+      PGADMIN_DEFAULT_PASSWORD: "senha123"
     ports:
       - "16543:80"
     depends_on:
