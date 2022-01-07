@@ -128,9 +128,12 @@ module.exports = {
             });
         }
         else{
-            return createUser(req, res, fileExtension);
+            return createUser(req, res, "");
         }
         
         
+    },
+    async delete(req, res){
+        const id = req.params.id;
     }
 };

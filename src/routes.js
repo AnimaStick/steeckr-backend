@@ -9,12 +9,11 @@ const multer = require('multer');
 const uploadProfilePic = multer();
 
 const auth = require("./lib/auth");
-const { query } = require('express');
 
 //USER ROUTES
 router.post("/login", User.login);
 router.post("/users", uploadProfilePic.single("profilePic"), User.create);
 //TEST AUTHENTICATION
 router.get("/auth", auth.sessionChecker, async (req, res) => {return res.status(200).json({message:req.session.user})});
-
+router.delete("/users/:id", auth.sessionChecker, User.delete)
 module.exports = router;

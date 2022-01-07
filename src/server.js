@@ -29,7 +29,8 @@ app.use(session({
 }))
 
 app.use(cors({
-    origin:`${process.env.APPLICATION_HOST}:${process.env.APPLICATION_PORT}` 
+    origin:`${process.env.APPLICATION_HOST}:${process.env.APPLICATION_PORT}` ,
+    credentials:true
     //se quiser, pode comentar essa linha acima para testar se não estiver funcionando
 }));
 app.use(express.json());
