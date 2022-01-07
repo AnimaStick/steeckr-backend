@@ -8,7 +8,8 @@ module.exports = {
             return res.status(401).json({error:"Não autenticado"});
     },
     adminChecker: (req, res, next) => {
-        connection.query(`select "isAdm" from "User" where "id" = $1`, [req.session.user.id]).then(result => {
+        console.log(req.session);
+        connection.query(`select "isAdm" from "User" where "id" = $1`, [req.session.profile.id]).then(result => {
             if(result.rowCount > 0 && result.rows[0].isAdm)
                 next();
             else
@@ -16,10 +17,11 @@ module.exports = {
         });
     },
     checkNoAdmAccess: (req, res, next) => {
-        if(req.params.id == req.session.user.id)
+        console.log(req.session);
+        if(req.params.id == req.session.profile.id)
             next();
         else {
-            connection.query(`select "isAdm" from "User" where "id" = $1`, [req.session.user.id]).then(result => {
+            connection.query(`select "isAdm" from "User" where "id" = $1`, [req.session.profile.id]).then(result => {
                 if(result.rowCount > 0 && result.rows[0].isAdm)
                     next();
                 else
