@@ -20,7 +20,6 @@ function createUser(req, res, fileExtension){
         birthday,
         description
     } = req.body;
-
     const hashedPassword = encryptPassword(password);
 
     //VERIFICAÇÕES OBRIGATÓRIAS
@@ -30,11 +29,9 @@ function createUser(req, res, fileExtension){
         return res.status(400).json({message: "email incorreto"});
     if(!password || password.length > 30)
         return res.status(400).json({message: "senha vazia/senha muito grande (o limite é 30 caracteres)"});
-    
         //VERIFICAÇÃO IDADE > 18
     if(!validateBirthDate(birthday))
         return res.status(400).json({message: "data de nascimento vazia/incorreta/não atingiu a idade mínima"});
-
     //MONTAGEM DO INSERT
     const userInsert = new QueryBuilder(
         `"username","email","password",birthday`,
