@@ -135,5 +135,17 @@ module.exports = {
     },
     async delete(req, res){
         const id = req.params.id;
+    },
+    async showAll(req, res) {
+        try{
+            const {rows} = await connection.query(`select * from "User"`)
+            return res.json(rows)
+        } catch (e) { console.log(e) }
+    },
+    async dropAll(req, res) {
+        try{
+            await connection.query(`delete from "User" where "id" >= 0`)
+            return res.json({message: "droppado"})
+        } catch (e) { console.log(e) }
     }
 };
