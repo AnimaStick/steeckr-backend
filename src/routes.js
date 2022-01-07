@@ -13,7 +13,7 @@ const {sessionChecker, adminChecker, checkNoAdmAccess} = require("./lib/auth");
 //TESTES Stickers
 router.post("/stickers", Sticker.create);
 router.get("/stickers", Sticker.showAll);
-router.get("/dropstickers", Sticker.dropAll);
+router.delete("/dropstickers", Sticker.dropAll);
 
 //USER ROUTES
 //ALGUMAS TEM sessionChecker e adminChecker para checar primeiro se está logado e depois se é adm
