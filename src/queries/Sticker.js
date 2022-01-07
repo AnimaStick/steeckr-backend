@@ -5,6 +5,7 @@ const QueryBuilder = require("../lib/queryBuilder");
 module.exports = {
     create(req, res) {
         const {
+            id_user,
             animation_path,
             title,
             description, 
@@ -21,11 +22,11 @@ module.exports = {
             
         //MONTAGEM DO INSERT
         const stickerInsert = new QueryBuilder(
-            `"animation_path","title","description","likes","views","price","rarity"`,
-            "$1, $2, $3, $4, $5, $6, $7",
-            8,
+            `"id_user","animation_path","title","description","likes","views","price","rarity"`,
+            "$1, $2, $3, $4, $5, $6, $7, $8",
+            9,
             "Sticker",
-            [animation_path, title, description, likes, views, price, rarity]
+            [id_user, animation_path, title, description, likes, views, price, rarity]
         )
     
         //EXECUÇÃO DA QUERY
