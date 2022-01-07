@@ -25,5 +25,5 @@ router.delete("/dropusers",sessionChecker, adminChecker, User.dropAll);
 router.delete("/users/:id", checkNoAdmAccess, User.delete);
 router.put("/users/:id", checkNoAdmAccess, uploadProfilePic.single("profilePic"), User.update);
 //TEST AUTHENTICATION
-router.get("/auth", sessionChecker, async (req, res) => {return res.status(200).json({message:req.session.user})});
+router.get("/auth", sessionChecker, async (req, res) => {return res.status(200).json({message:req.session.profile})});
 module.exports = router;

@@ -24,11 +24,20 @@ app.use(session({
     store: pgSessionStore
 }))
 
-app.use(cors({
+app.use( cors({
     origin:`${process.env.APPLICATION_HOST}:${process.env.APPLICATION_PORT}` ,
     credentials:true
-    //se quiser, pode comentar essa linha acima para testar se não estiver funcionando
 }));
+
+// app.use('*', corsConfigured);
+
+// app.use((req, res, next) => {
+//     res.header("Access-Control-Allow-Origin", `${process.env.APPLICATION_HOST}:${process.env.APPLICATION_PORT}`);
+//     res.header("Access-Control-Allow-Credentials", true);
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"),
+//     next();
+// });
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(routes);

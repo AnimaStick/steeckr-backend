@@ -171,7 +171,7 @@ module.exports = {
             else{
                 const validPass = await bcrypt.compare(password, rows[0].password);
                 if(validPass){
-                    req.session.user = {id: rows[0].id};
+                    req.session.profile = {id: rows[0].id};
                     return res.status(200).json({message:"logado"});
                 }
                 else
