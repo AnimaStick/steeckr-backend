@@ -76,7 +76,9 @@ async function updateUser(req, res, fileExtension){
     const id = req.params.id;
     if(!id)
         return res.status(400).json({error: "id inválido"});
+
     const profilePic = req.file;
+
     const {
         username,
         email,
@@ -84,7 +86,9 @@ async function updateUser(req, res, fileExtension){
         birthday,
         description
     } = req.body;  
+
     const updateBuilder = new UpdateBuilder("User");
+
     if(username)
         updateBuilder.insertValue("username", username);
     if(email){
@@ -121,7 +125,7 @@ async function updateUser(req, res, fileExtension){
     try{
         const {rows} = await connection.query(updateBuilder.updateQuery);
         if(rows.length > 0){
-            if(profilePic){
+            if(oldProfilePath){
                 try{
                     await fs.unlinkSync(oldProfilePath);
                 }catch(e){
@@ -132,12 +136,12 @@ async function updateUser(req, res, fileExtension){
             return res.status(200).json({message: "usuário atualizado com sucesso!"});
         }
         else{
-            if(profilePic){
+            if(filePath){
                 try {
                     await fs.unlinkSync(filePath);
                 }catch (e) {
                     console.log(e);
-                    return res.status(200).json({ message: "usuário atualizado com sucesso!", error: "erro interno ocorreu, imagem antiga reside no server" });
+                    return res.status(500).json({ error: "erro interno ocorreu, imagem nova reside no server" });
                 }
             } 
             return res.status(500).json({ error: "erro interno" });
