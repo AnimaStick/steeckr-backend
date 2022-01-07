@@ -5,6 +5,7 @@ const pgSession = require('connect-pg-simple')(session);
 require('dotenv').config();
 const cors = require('cors');
 const routes = require('./routes');
+const {encryptPassword} = require("./lib/encryptPassword");
 
 const app = express();
 
@@ -31,6 +32,19 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(routes);
+
+//CRIAÇÃO DE UMA CONTA DE ADMINISTRADOR, DE ACORDO COM VALORES DO .ENV
+connection.query(`delete from "User" where "isAdm"=true`).then(res => {
+    connection.query(`insert into "User"(username,email,"password",birthday, "isAdm") values ($1,$2,$3,$4, $5)`, [
+        process.env.USERNAME, process.env.EMAIL, encryptPassword(process.env.PASSWORD), process.env.BIRTHDAY, true
+    ]).catch(e => {
+        console.log("ADM account not created");
+        console.log(e);
+    });
+}).catch(e => {
+    console.log("ADM account not created");
+    console.log(e);
+});
 
 const PORT = process.env.PORT || 3001;
 

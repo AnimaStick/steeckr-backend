@@ -63,7 +63,7 @@ function createUser(req, res, fileExtension){
     }
     //EXECUÇÃO DA QUERY
     connection.query(userInsert.query).then(result => {
-        if (result.rowCount)
+        if (result.rowCount > 0)
             return res.status(201).json({ message: "Usuário criado com sucesso" });
         else{
             if(req.file)
@@ -135,6 +135,27 @@ module.exports = {
     },
     async delete(req, res){
         const id = req.params.id;
+        try{
+            parseInt(id);
+        }catch(e){
+            return res.status(400).json({message: `Id inválido, favor tentar novamente`});
+        }
+        const {rows} = await connection.query(`select picture_path from "User" where "id"=$1`,[id]);
+        let queryRes;
+        try{
+            queryRes = await connection.query(`delete from "User" where "id"=$1 RETURNING id`, [id]);
+        }catch(e){
+            console.log(e);
+            return res.status(500).json({message: `Erro interno, favor tentar novamente`});
+        }
+        if(queryRes.rowCount > 0){
+            if(rows[0].picture_path){
+                await fs.unlinkSync(rows[0].picture_path);
+            }
+            return res.status(200).json({message: `Usuário de id ${id} deletado com sucesso`});
+        }
+        else
+            return res.status(404).json({message: "Usuário não existe"});
     },
     async showAll(req, res) {
         try{
