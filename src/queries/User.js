@@ -8,6 +8,9 @@ let magic = new Magic(mmm.MAGIC_MIME_TYPE);
 const { encryptPassword } = require('../lib/encryptPassword');
 const FileActions = require("../lib/fileActions");
 const QueryBuilder = require("../lib/queryBuilder");
+const { validateEmail, validateBirthDate } = require('../lib/validate');
+const { writeProfilePic } = require('../lib/fileActions');
+const UpdateBuilder = require('../lib/updateBuilder');
 
 function createUser(req, res, fileExtension){
     const {
@@ -29,11 +32,7 @@ function createUser(req, res, fileExtension){
         return res.status(400).json({message: "senha vazia/senha muito grande (o limite é 30 caracteres)"});
     
         //VERIFICAÇÃO IDADE > 18
-    let minimumAge = new Date();
-    minimumAge.setFullYear(minimumAge.getFullYear()-18);
-    let dateFields = birthday.split("-");
-    let birthDayDate = new Date(dateFields[0], dateFields[1], dateFields[2]);
-    if(!birthday || birthDayDate > minimumAge)
+    if(!validateBirthDate(birthday))
         return res.status(400).json({message: "data de nascimento vazia/incorreta/não atingiu a idade mínima"});
 
     //MONTAGEM DO INSERT
@@ -51,14 +50,9 @@ function createUser(req, res, fileExtension){
     //SALVANDO IMAGEM EM /files/profile E ADICIONANDO NO INSERT O CAMINHO DELA
     let filePath;
     if(req.file){
-        let fileName = `${Date.now()}-${username}.${fileExtension}`;
-        filePath = `./files/profile/${fileName}`;
-        try{
-            fs.writeFileSync(filePath, req.file.buffer);
-        }catch(e){
-            console.log(e);
-            return res.status(400).json({error: "Erro interno, favor tentar novamente"});
-        }
+        const filePath = writeProfilePic(username, req.file.buffer, fileExtension);
+        if(!filePath)
+            return res.status(500).json({error: "erro interno"});
         userInsert.insertValue("picture_path", filePath);
     }
     //EXECUÇÃO DA QUERY
@@ -76,6 +70,82 @@ function createUser(req, res, fileExtension){
             FileActions.deleteFiles([filePath]);
         return res.status(400).json({error: error});
     });
+}
+
+async function updateUser(req, res, fileExtension){
+    const id = req.params.id;
+    if(!id)
+        return res.status(400).json({error: "id inválido"});
+    const profilePic = req.file;
+    const {
+        username,
+        email,
+        password, 
+        birthday,
+        description
+    } = req.body;  
+    const updateBuilder = new UpdateBuilder("User");
+    if(username)
+        updateBuilder.insertValue("username", username);
+    if(email){
+        if(!validateEmail(email))
+            return res.status(400).json({error:"email inválido!"});
+        updateBuilder.insertValue("email", email);  
+    }
+    if(password){
+        const hashedPassword = await encryptPassword(password);
+        updateBuilder.insertValue("password", hashedPassword);
+    }
+    if(birthday){
+        if(validateBirthDate(birthday))
+            updateBuilder.insertValue("birthday", birthday);
+        else
+            return res.status(400).json({error: "data de nascimento inválida"});
+    }
+    if(description)
+        updateBuilder.insertValue("description", description);   
+    
+    let oldProfilePath, filePath;  
+    if(profilePic){
+        const { rows } = await connection.query(`select picture_path, username from "User" where id=$1`, [id]);
+        oldProfilePath = rows[0].picture_path;
+        const pictureUsername = username ? username : rows[0].username;
+        
+        filePath = await writeProfilePic(pictureUsername, profilePic.buffer, fileExtension);
+        if (!filePath)
+            return res.status(500).json({ error: "erro interno" });
+        updateBuilder.insertValue("picture_path", filePath);
+    }
+        
+    updateBuilder.values.push(id);
+    try{
+        const {rows} = await connection.query(updateBuilder.updateQuery);
+        if(rows.length > 0){
+            if(profilePic){
+                try{
+                    await fs.unlinkSync(oldProfilePath);
+                }catch(e){
+                    console.log(e);
+                    return res.status(200).json({message: "usuário atualizado com sucesso!", error: "erro interno ocorreu, imagem antiga reside no server"});
+                }
+            }
+            return res.status(200).json({message: "usuário atualizado com sucesso!"});
+        }
+        else{
+            if(profilePic){
+                try {
+                    await fs.unlinkSync(filePath);
+                }catch (e) {
+                    console.log(e);
+                    return res.status(200).json({ message: "usuário atualizado com sucesso!", error: "erro interno ocorreu, imagem antiga reside no server" });
+                }
+            } 
+            return res.status(500).json({ error: "erro interno" });
+        }
+    }catch(e){
+        console.log(e);
+        return res.status(500).json({error: "erro interno"});
+    }
 }
 
 module.exports = {
@@ -131,6 +201,25 @@ module.exports = {
             return createUser(req, res, "");
         }
         
+        
+    },
+    update(req, res){
+        const profilePic = req.file;
+        //DETECÇÃO SE IMAGEM DE PERFIL FOI ENVIADA
+        if(req.file){
+            //DETECÇÃO SE ARQUIVO É UMA IMAGEM
+            magic.detect(profilePic.buffer, (err, result) => {
+                if(err) throw err;
+                let nameAndExtension = result.split("/");
+                if(!nameAndExtension[0] === "image"){
+                    return res.status(400).json({message: "Imagem inválida"});
+                }
+                updateUser(req, res, nameAndExtension[1]).then(res => {return res});
+            });
+        }
+        else{
+            updateUser(req, res, "").then(res => {return res});
+        }
         
     },
     async delete(req, res){

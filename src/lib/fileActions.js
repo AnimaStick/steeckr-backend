@@ -13,5 +13,16 @@ module.exports = {
                 console.log(e);
             }
         }
+    },
+    writeProfilePic: function(username, fileBuffer, fileExtension){
+        let fileName = `${Date.now()}-${username}.${fileExtension}`;
+        filePath = `./files/profile/${fileName}`;
+        try{
+            fs.writeFileSync(filePath, fileBuffer);
+        }catch(e){
+            console.log(e);
+            return;
+        }
+        return filePath;
     }
 };
