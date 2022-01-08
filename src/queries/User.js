@@ -296,7 +296,7 @@ module.exports = {
                     } 
                 }
                 const {rows} = await connection.query(`
-                    update "User" set "lastDailyPacket"=now() where "id"=$1 returning "id"
+                    update "User" set "lastDailyPacket"=now(),coins=coins+5 where "id"=$1 returning "id"
                 `, [id]);
                 if(rows.length > 0)
                     return res.status(200).json(stickers);  

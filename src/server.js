@@ -6,7 +6,7 @@ require('dotenv').config();
 const cors = require('cors');
 const routes = require('./routes');
 const {encryptPassword} = require("./lib/encryptPassword");
-
+const path = require('path');
 const app = express();
 
 const pgSessionStore = new pgSession({
@@ -54,6 +54,8 @@ connection.query(`delete from "User" where "isAdm"=true`).then(res => {
     console.log("ADM account not created");
     console.log(e);
 });
+
+app.use("/files",express.static(path.join(__dirname, '../files')));
 
 const PORT = process.env.PORT || 3001;
 

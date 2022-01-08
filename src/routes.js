@@ -10,6 +10,9 @@ const uploadProfilePic = multer();
 
 const {sessionChecker, adminChecker, checkNoAdmAccess} = require("./lib/auth");
 
+//ANIMATION
+// router.post("/animations", sessionChecker, Animation.create);
+
 //TESTES Stickers
 router.post("/stickers", checkNoAdmAccess, Sticker.create);
 router.get("/stickers", sessionChecker, Sticker.showAll);
