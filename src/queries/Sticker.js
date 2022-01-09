@@ -75,5 +75,12 @@ module.exports = {
             await connection.query(`delete from "Animation" where "id" >= 0`)
             return res.json({message: "droppado"})
         } catch (e) { console.log(e) }
+    },
+    async getSticker(req,res){
+        const id = req.params.id
+        try {
+            const user = await connection.query(`select * from "Animation" where "id"=$1`,[id]);
+            return res.json(user.rows)
+        } catch (e) {console.log(e)}
     }
 }

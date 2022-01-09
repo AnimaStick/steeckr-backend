@@ -16,8 +16,9 @@ const {sessionChecker, adminChecker, checkNoAdmAccess} = require("./lib/auth");
 //TESTES Stickers
 
 router.post("/stickers", checkNoAdmAccess, Sticker.create);
-router.get("/stickers", sessionChecker, Sticker.showAll);
-router.get("/dropstickers", sessionChecker, adminChecker, Sticker.dropAll);
+router.get("/stickers", Sticker.showAll);
+router.get("/sticker/:id", Sticker.getSticker)
+router.delete("/dropstickers", sessionChecker, adminChecker, Sticker.dropAll);
 router.get("/getDailyPacket/:id", sessionChecker, User.getDailyStickerPack);
 
 
