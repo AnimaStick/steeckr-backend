@@ -66,7 +66,7 @@ module.exports = {
     },
     async showAll(req, res) {
         try{
-            const {rows} = await connection.query(`select * from "Animation"`)
+            const {rows} = await connection.query(`select * from "Animation" where "price" is null`)
             return res.json(rows)
         } catch (e) { console.log(e) }
     },
