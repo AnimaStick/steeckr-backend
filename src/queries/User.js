@@ -259,6 +259,61 @@ module.exports = {
             return res.json({message: "droppado"})
         } catch (e) { console.log(e) }
     },
+
+    async getDailyStickerPack(req,res){
+        const id = req.params.id;
+        if(!id)
+            return res.status(400).json({error: "id inválido"});
+        try{
+            const {rows} = await connection.query(`select "lastDailyPacket" from "User" where id=$1`,[id]);
+            const yesterdayDateRes = await connection.query("select now()");
+            const yesterdayDate = new Date(yesterdayDateRes.rows[0].now);
+            yesterdayDate.setDate(yesterdayDate.getDate()-1);
+            const stickers = [];
+            if(rows[0].lastDailyPacket < yesterdayDate){
+                for(let i = 0; i < 5; i++){
+                    let rarity = 1;
+                    const random = Math.random();
+                    if(random < 0.6)
+                        rarity = 5;
+                    if(random >= 0.6 && random < 0.85)
+                        rarity = 4;
+                    else if(random >= 0.85 && random < 0.95)
+                        rarity = 3;
+                    else if(random >= 0.95 && random < 0.99)
+                        rarity = 2;
+                    try{
+                        const {rows} = await connection.query(`
+                        select rarity,animation_path,title from "Sticker"
+                            where rarity=$1 order by random() limit 1`,[rarity]);
+                        if(rows.length > 0)
+                            stickers.push(rows[0]);
+                        else{
+                            return res.status(404).json({error:`Figurinha de raridade ${rarity} não encontrada. Erro herege!`});
+                        }
+                    }catch(e){
+                        console.log(e);
+                        return res.status(500).json({error:"Erro interno"});
+                    } 
+                }
+                const {rows} = await connection.query(`
+                    update "User" set "lastDailyPacket"=now(),coins=coins+5 where "id"=$1 returning "id"
+                `, [id]);
+                if(rows.length > 0)
+                    return res.status(200).json(stickers);  
+                else
+                    return res.status(500).json({error:"Erro interno"});
+    
+            }
+            else
+                return res.status(404).json({message: "Pacote já gerado, volte 24 horas depois da geração do último pacote"});    
+        }catch(e){
+            console.log(e);
+            return res.status(500).json({error:"erro interno"});
+        }
+        
+    } 
+
     async getUser(req,res){
         const id = req.params.id
         try {
@@ -266,4 +321,5 @@ module.exports = {
             return res.json(user.rows)
         } catch (e) {console.log(e)}
     }
+
 };
