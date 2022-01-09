@@ -259,6 +259,7 @@ module.exports = {
             return res.json({message: "droppado"})
         } catch (e) { console.log(e) }
     },
+
     async getDailyStickerPack(req,res){
         const id = req.params.id;
         if(!id)
@@ -312,4 +313,13 @@ module.exports = {
         }
         
     } 
+
+    async getUser(req,res){
+        const id = req.params.id
+        try {
+            const user = await connection.query(`select * from "User" where "id"=$1`,[id]);
+            return res.json(user.rows)
+        } catch (e) {console.log(e)}
+    }
+
 };
