@@ -8,9 +8,9 @@ module.exports = {
             id_user,
             animation_path,
             title,
-            description, 
-            likes,
+            description,
             views,
+            creation_date,
             price,
             rarity
         } = req.body
@@ -22,19 +22,19 @@ module.exports = {
             
         //MONTAGEM DO INSERT
         const stickerInsert = new QueryBuilder(
-            `"id_user","animation_path","title","description","likes","views","price","rarity"`,
+            `"id_user","animation_path","title","description","views","creation_date","price","rarity"`,
             "$1, $2, $3, $4, $5, $6, $7, $8",
             9,
-            "Sticker",
-            [id_user, animation_path, title, description, likes, views, price, rarity]
+            "Animation",
+            [id_user, animation_path, title, description, views, creation_date, price, rarity]
         )
     
         //EXECUÇÃO DA QUERY
         connection.query(stickerInsert.query).then(result => {
-            if (result.rowCount) return res.status(201).json({ message: "Sticker criado com sucesso" })
+            if (result.rowCount) return res.status(201).json({ message: "Animation criado com sucesso" })
             else{
                 if(req.file) FileActions.deleteFiles([filePath])
-                return res.status(400).json({ error: "Sticker não inserido, favor tentar novamente" })
+                return res.status(400).json({ error: "Animation não inserido, favor tentar novamente" })
             }
         }).catch(error => {
             console.log(error)
@@ -66,13 +66,13 @@ module.exports = {
     },
     async showAll(req, res) {
         try{
-            const {rows} = await connection.query(`select * from "Sticker"`)
+            const {rows} = await connection.query(`select * from "Animation"`)
             return res.json(rows)
         } catch (e) { console.log(e) }
     },
     async dropAll(req, res) {
         try{
-            await connection.query(`delete from "Sticker" where "id" >= 0`)
+            await connection.query(`delete from "Animation" where "id" >= 0`)
             return res.json({message: "droppado"})
         } catch (e) { console.log(e) }
     }
