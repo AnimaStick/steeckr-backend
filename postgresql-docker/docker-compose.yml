@@ -7,8 +7,7 @@ services:
       POSTGRES_PASSWORD: "senha123"
     ports:
       - "15432:5432"
-    volumes:
-      - C:\Users\sallo\Desktop\Steeck\steeckr-backend\postgresql-docker
+    
     networks:
       - postgres-compose-network
       

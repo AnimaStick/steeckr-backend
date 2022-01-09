@@ -26,7 +26,7 @@ router.get("/getDailyPacket/:id", sessionChecker, User.getDailyStickerPack);
 //
 router.post("/login", User.login);
 router.post("/users", uploadProfilePic.single("profilePic"), User.create);
-router.get("/users", sessionChecker, adminChecker, User.showAll);
+router.get("/users", sessionChecker, User.showAll);
 router.get("/user/:id",User.getUser)
 router.delete("/dropusers",sessionChecker, adminChecker, User.dropAll);
 router.delete("/users/:id", checkNoAdmAccess, User.delete);
