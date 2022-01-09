@@ -312,7 +312,7 @@ module.exports = {
             return res.status(500).json({error:"erro interno"});
         }
         
-    } 
+    },
 
     async getUser(req,res){
         const id = req.params.id
