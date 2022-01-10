@@ -13,15 +13,18 @@ const {sessionChecker, adminChecker, checkNoAdmAccess} = require("./lib/auth");
 //ANIMATION
 // router.post("/animations", sessionChecker, Animation.create);
 
-//TESTES Stickers
+//TESTES Animations
 
-router.post("/stickers", Sticker.create);
-router.get("/stickers", Sticker.showAll);
-router.get("/sticker/:id", Sticker.getSticker)
-router.get("/stickers/:title", Sticker.getStickers)
-router.delete("/dropstickers", sessionChecker, adminChecker, Sticker.dropAll);
+router.post("/animations", Sticker.createAnimation);
+router.get("/animations", Sticker.showAllAnimations);
+router.get("/animation/:id", Sticker.getAnimation)
+router.get("/animations/:title", Sticker.getAnimations)
+router.delete("/dropanimations", sessionChecker, adminChecker, Sticker.dropAllAnimations);
 router.get("/getDailyPacket/:id", sessionChecker, User.getDailyStickerPack);
 router.get("/turnAnimationSticker", sessionChecker,adminChecker, Sticker.turnAnimationsSticker);
+//STICKERS
+router.post("/stickers", Sticker.createAnimation);
+router.get("/stickers", Sticker.showAllStickers);
 
 //USER ROUTES
 //ALGUMAS TEM sessionChecker e adminChecker para checar primeiro se está logado e depois se é adm
