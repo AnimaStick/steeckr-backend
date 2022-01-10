@@ -73,7 +73,10 @@ module.exports = {
     },
     async showAll(req, res) {
         try{
-            const {rows} = await connection.query(`select * from "Animation" where "price" is null`)
+            const {rows} = await connection.query(`
+            select id, title, views, description, animation_path from "Animation"
+                    order by creation_date desc
+                `)
             return res.json(rows)
         } catch (e) { console.log(e) }
     },
@@ -86,7 +89,13 @@ module.exports = {
     async getSticker(req,res){
         const id = req.params.id
         try {
-            const user = await connection.query(`select * from "Animation" where "id"=$1`,[id]);
+            const user = await connection.query(`
+                select a.*, count(l.id_animation) as "likes", count(c.id_animation) as "comments" from "Animation" as a 
+                left join "Like" as l on l.id_animation=a.id
+                    left join "Comment" as c on c.id_animation=a.id
+                        where a.id=$1
+                            group by a.id
+                `,[id]);
             return res.json(user.rows)
         } catch (e) {console.log(e)}
     }
