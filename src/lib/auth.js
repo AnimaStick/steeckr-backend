@@ -17,7 +17,6 @@ module.exports = {
         });
     },
     checkNoAdmAccess: (req, res, next) => {
-        console.log(req.session);
         if(req.params.id == req.session.profile.id)
             next();
         else {

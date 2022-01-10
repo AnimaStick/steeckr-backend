@@ -330,9 +330,18 @@ module.exports = {
         }
         
     },
-
+    logout(req, res){
+        req.session.destroy((err) => {
+            if (err) {
+                console.log(err);
+                res.status(500).json({message:'Não foi possível deslogar'});
+              } else {
+                res.status(200).json({message:'Deslogado'});
+              }
+        });
+    },
     async getUser(req,res){
-        const id = req.params.id
+        const id = req.params.id;
         try {
             const user = await connection.query(`select * from "User" where "id"=$1`,[id]);
             return res.json(user.rows)

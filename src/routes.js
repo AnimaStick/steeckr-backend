@@ -30,6 +30,7 @@ router.get("/stickers/:id", Sticker.showUserStickers);
 //ALGUMAS TEM sessionChecker e adminChecker para checar primeiro se está logado e depois se é adm
 //
 router.post("/login", User.login);
+router.post("/logout", User.logout);
 router.post("/users", uploadProfilePic.single("profilePic"), User.create);
 router.get("/users", sessionChecker, User.showAll);
 router.get("/user/:id",User.getUser)
