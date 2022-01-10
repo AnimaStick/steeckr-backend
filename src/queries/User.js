@@ -266,6 +266,8 @@ module.exports = {
             return res.status(400).json({error: "id inválido"});
         try{
             const {rows} = await connection.query(`select "lastDailyPacket" from "User" where id=$1`,[id]);
+            if(rows.length == 0)
+                return res.status(404).json({error: "Usuário não encontrado"});
             const yesterdayDateRes = await connection.query("select now()");
             const yesterdayDate = new Date(yesterdayDateRes.rows[0].now);
             yesterdayDate.setDate(yesterdayDate.getDate()-1);
@@ -284,13 +286,28 @@ module.exports = {
                         rarity = 2;
                     try{
                         const {rows} = await connection.query(`
-                        select rarity,animation_path,title from "Sticker"
-                            where rarity=$1 order by random() limit 1`,[rarity]);
+                        select rarity,animation_path,title,id,id_user from "Animation"
+                            where price is not null and rarity=$1 order by random() limit 1`,[rarity]);
                         if(rows.length > 0)
                             stickers.push(rows[0]);
-                        else{
+                        else
                             return res.status(404).json({error:`Figurinha de raridade ${rarity} não encontrada. Erro herege!`});
+                        
+                        const userAnimResSelect = await connection.query(`
+                            select * from "User_Animation" where id_user=$1 and id_animation=$2 
+                        `,[id, rows[0].id]);
+                        if(userAnimResSelect.rowCount == 0){
+                            const insertRes = await connection.query(
+                                `insert into "User_Animation"(id_user, id_animation) values ($1, $2)
+                            `,[id, rows[0].id]);
                         }
+                        else{
+                            console.log(rows[0].id);
+                            const updateRes = await connection.query(
+                                `update "User_Animation" set quantity=quantity+1 where id_user=$1 and id_animation=$2
+                            `,[id, rows[0].id]); 
+                        }    
+                        
                     }catch(e){
                         console.log(e);
                         return res.status(500).json({error:"Erro interno"});
@@ -312,7 +329,7 @@ module.exports = {
             return res.status(500).json({error:"erro interno"});
         }
         
-    } 
+    },
 
     async getUser(req,res){
         const id = req.params.id
