@@ -2,6 +2,10 @@ const connection = require('../config/database');
 const FileActions = require("../lib/fileActions");
 const QueryBuilder = require("../lib/queryBuilder");
 
+const STICKER_ATTR_ORDER = [
+    "id_user", 
+]
+
 module.exports = {
     create(req, res) {
         const {
@@ -43,25 +47,28 @@ module.exports = {
         })
     },
     async turnAnimationsSticker(req, res){
-        const {rows} = await connection.query(
-            `select "st".id_user,"st".animation_path,"st".title,"st".description,"st"."views",(count("like".id_animation)*0.7 + 0.3*"st"."views") as "price",  from "Sticker" as "st" 
-                left join "Like" as "like" where "like".id_animation="st".id_animation 
-                order by "price" limit 10`);
-        let rarity = 1;
-        let stickerQuery = `insert into "Sticker"(id_user,animation_path,title,description,"views", price, rarity) values`;
-        let stickerValues = [];
-        for (let i = 0; i < rows.length; i++) {
-            let j = 1;
-            stickerQuery += "(";
-            for(j = 1; j < 8; j++){
-                stickerQuery += `$${i+j}`;
-                stickerValues.push()
-                if(j != 7)
-                stickerQuery += ",";
+        let i = 1;
+        try{
+            for(let i = 1; i < 5; i++){
+                const {rows} = await connection.query(
+                    `update "Animation" as "animation" set price=anima."priceCalc", rarity=${i} from 
+                        (select id,(count("like".id_animation)*0.7 + 0.3*"anim"."views") as "priceCalc",price from "Animation" as "anim" 
+                            left join "Like" as "like" on "like".id_animation="anim".id where "anim".price is null
+                                group by "anim".id order by "priceCalc" desc limit ${Math.ceil(i/2)}) as "anima" 
+                                    where "anima".id=animation.id`);
             }
-            stickerQuery += ")";
-            if(i != (rows.length - 1))
-            stickerQuery += ",\n";
+            
+            const {rows} = await connection.query(
+                `update "Animation" as "animation" set price=anima."priceCalc", rarity=${5} from 
+                    (select id,(count("like".id_animation)*0.7 + 0.3*"anim"."views") as "priceCalc",price from "Animation" as "anim" 
+                        left join "Like" as "like" on "like".id_animation="anim".id where "anim".price is null
+                            group by "anim".id order by "priceCalc" desc limit ${4}) as "anima" 
+                                where "anima".id=animation.id`);
+
+            return res.status(200).json({ message: "Figurinhas criadas com sucesso!" })        
+        }catch(e){
+            console.log(e);
+            return res.status(500).json({error: `Figurinhas de raridade ${i} ou acima não foram geradas com sucesso.`});
         }
     },
     async showAll(req, res) {

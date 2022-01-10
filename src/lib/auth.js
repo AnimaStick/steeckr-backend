@@ -2,7 +2,7 @@ const connection = require("../config/database");
 
 module.exports = {
     sessionChecker: (req, res, next) => {
-        if(req.session.cookie && Date.now()<req.session.cookie._expires)
+        if(req.session.profile && Date.now()<req.session.cookie._expires)
             next();
         else
             return res.status(401).json({error:"Não autenticado"});
