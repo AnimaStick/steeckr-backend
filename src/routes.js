@@ -24,7 +24,7 @@ router.get("/getDailyPacket/:id", sessionChecker, User.getDailyStickerPack);
 router.get("/turnAnimationSticker", sessionChecker,adminChecker, Sticker.turnAnimationsSticker);
 //STICKERS
 router.post("/stickers", Sticker.createAnimation);
-router.get("/stickers", Sticker.showAllStickers);
+router.get("/stickers/:id", Sticker.showUserStickers);
 
 //USER ROUTES
 //ALGUMAS TEM sessionChecker e adminChecker para checar primeiro se está logado e depois se é adm

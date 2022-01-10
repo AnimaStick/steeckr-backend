@@ -148,11 +148,11 @@ module.exports = {
             return res.status(400).json({error: error})
         })
     },
-    async showAllStickers(req, res) {
+    async showUserStickers(req, res) {
+        const id = req.params.id
         try{
             const {rows} = await connection.query(`
-            select id, title, views, description, animation_path, price, rarity from "Animation" where "price" is not null
-                `)
+            select id, title, views, description, animation_path, price, rarity from "Animation" where ("price" is not null) and ("id_user" = $1)`, [id])
             return res.json(rows)
         } catch (e) { console.log(e) }
     }
