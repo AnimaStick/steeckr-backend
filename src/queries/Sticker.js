@@ -98,5 +98,12 @@ module.exports = {
                 `,[id]);
             return res.json(user.rows)
         } catch (e) {console.log(e)}
+    },
+    async getStickers(req,res){
+        const title = req.params.title
+        try {
+            const user = await connection.query(`select * from "Animation" where "title"=$1`,[title]);
+            return res.json(user.rows)
+        } catch (e) {console.log(e)}
     }
 }
