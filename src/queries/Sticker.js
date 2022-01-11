@@ -74,7 +74,7 @@ module.exports = {
     async showAllAnimations(req, res) {
         try{
             const {rows} = await connection.query(`
-            select id, title, views, description, animation_path from "Animation" where price is null
+            select id, title, views, description, animation_path from "Animation"
                     order by creation_date desc
                 `)
             return res.json(rows)
@@ -86,23 +86,78 @@ module.exports = {
             return res.json({message: "droppado"})
         } catch (e) { console.log(e) }
     },
+    async getPostInformation(req, res){
+        const animId = req.params.id;
+        const userId = req.session.profile.id;
+        let userLiked = false;
+        try{
+            const {rows} = await connection.query(`
+            select id_animation from "Like" where id_animation=$1 and id_user=$2
+            `,[animId, userId]);
+            if (rows.length > 0)
+                userLiked = true;
+            const comments = await connection.query(`
+            select comment, u.picture_path, u.username from "Comment" c
+                inner join "Animation" a on a.id=c.id_animation and a.id=$1
+                    left join "User" u on u.id=c.id_user
+        `, [animId]);
+            return res.status(200).json({ userLiked: userLiked, comments: comments.rows });
+        } catch (e) {
+            console.log(e);
+            return res.status(400).json({ error: "Erro interno" });
+        }   
+    },
+    async likeAnimation(req, res){
+        const animId = req.params.id;
+        const userId = req.session.profile.id;
+        try{
+            const {rows} = await connection.query(`
+            insert into "Like" (id_animation, id_user) values($1,$2) returning id_animation
+            `,[animId, userId]);
+            return res.status(200).json({message:"Liked"});
+        }catch(e){
+            console.log(e);
+            return res.status(400).json({ error: "Erro interno" });
+        }
+    },
+    async commentAnimation(req, res){
+        const animId = req.params.id;
+        const comment = req.body.comment;
+        const userId = req.session.profile.id;
+        try{
+            const {rows} = await connection.query(`
+            insert into "Comment" (id_animation, id_user, comment) values($1,$2, $3) returning id_animation
+            `,[animId, userId, comment]);
+            return res.status(200).json({message:"Liked"});
+        }catch(e){
+            console.log(e);
+            return res.status(400).json({ error: "Erro interno" });
+        }
+    },
     async getAnimation(req,res){
         const id = req.params.id
         try {
-            const user = await connection.query(`
-                select a.*, count(l.id_animation) as "likes", count(c.id_animation) as "comments" from "Animation" as a 
+            const{rows} = await connection.query(`
+            select a.*, (count(l.id_animation)) as "likes"from "Animation" as a 
                 left join "Like" as l on l.id_animation=a.id
-                    left join "Comment" as c on c.id_animation=a.id
                         where a.id=$1
                             group by a.id
+            `,[id])
+            const countComment = await connection.query(`
+            select (count(l.id_animation)) as "comments" from "Animation" as a 
+                left join "Comment" as l on l.id_animation=a.id
+                    where a.id=$1
+                        group by a.id  
                 `,[id]);
-            return res.json(user.rows)
+            const animation = await connection.query(`select * from "Animation" where id=$1
+            `,[id]);
+            return res.json({animation:animation.rows, comments: countComment.rows[0].comments, likes: rows[0].likes})
         } catch (e) {console.log(e)}
     },
     async getAnimations(req,res){
         const title = req.params.title
         try {
-            const user = await connection.query(`select * from "Animation" where "title"=$1`,[title]);
+            const user = await connection.query(`select * from "Animation" where lower("title")~lower($1)`,[title]);
             return res.json(user.rows)
         } catch (e) {console.log(e)}
     },
