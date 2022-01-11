@@ -1,6 +1,8 @@
 const connection = require('../config/database');
 const FileActions = require("../lib/fileActions");
 const QueryBuilder = require("../lib/queryBuilder");
+const fs = require("fs");
+const User = require('./User');
 
 const STICKER_ATTR_ORDER = [
     "id_user", 
@@ -10,27 +12,22 @@ module.exports = {
     createAnimation(req, res) {
         const {
             id_user,
-            animation_path,
             title,
             description,
-            views,
-            creation_date,
-            price,
-            rarity
+            path
         } = req.body
     
         //VERIFICAÇÕES OBRIGATÓRIAS
-        if(!animation_path) return res.status(400).json({message: "animation_path vazio"})
         if(!title) return res.status(400).json({message: "title vazio"})
         if(!description) return res.status(400).json({message: "description vazio"})
             
         //MONTAGEM DO INSERT
         const animationInsert = new QueryBuilder(
-            `"id_user","animation_path","title","description","views","creation_date","price","rarity"`,
-            "$1, $2, $3, $4, $5, $6, $7, $8",
-            9,
+            `"id_user","title","description","animation_path"`,
+            "$1, $2, $3, $4",
+            5,
             "Animation",
-            [id_user, animation_path, title, description, views, creation_date, price, rarity]
+            [id_user, title, description, path]
         )
     
         //EXECUÇÃO DA QUERY
@@ -46,6 +43,14 @@ module.exports = {
             return res.status(400).json({error: error})
         })
     },
+
+    uploadFile(req,res){
+        
+        let splittedFile = req.file.originalname.split(".")
+        let path = FileActions.writeProfilePic(req.session.profile.id, req.file.buffer,splittedFile[splittedFile.length-1],"animations")
+        return res.status(200).send(path)
+    },
+
     async turnAnimationsSticker(req, res){
         let i = 1;
         try{
@@ -157,8 +162,8 @@ module.exports = {
     async getAnimations(req,res){
         const title = req.params.title
         try {
-            const user = await connection.query(`select * from "Animation" where lower("title")~lower($1)`,[title]);
-            return res.json(user.rows)
+            const search = await connection.query(`select * from "Animation" where lower("title")~lower($1)`,[title]);
+            return res.json(search.rows)
         } catch (e) {console.log(e)}
     },
 

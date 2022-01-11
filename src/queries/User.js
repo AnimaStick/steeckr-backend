@@ -12,7 +12,7 @@ const { validateEmail, validateBirthDate } = require('../lib/validate');
 const { writeProfilePic } = require('../lib/fileActions');
 const UpdateBuilder = require('../lib/updateBuilder');
 
-function createUser(req, res, fileExtension){
+function createUser(req, res, fileExtension) {
     const {
         username,
         email,
@@ -67,6 +67,22 @@ function createUser(req, res, fileExtension){
             FileActions.deleteFiles([filePath]);
         return res.status(400).json({error: error});
     });
+}
+
+async function verifyCooldown(req, res) {
+    const id = req.params.id;
+    try {
+        const {rows} = await connection.query(`select "lastDailyPacket" from "User" where id=$1`,[id]);
+        if(rows.length == 0)
+            return res.status(404).json({error: "Usuário não encontrado"});
+        const yesterdayDateRes = await connection.query("select now()");
+        const yesterdayDate = new Date(yesterdayDateRes.rows[0].now);
+        yesterdayDate.setDate(yesterdayDate.getDate()-1);
+        if(rows[0].lastDailyPacket < yesterdayDate) {
+            return true
+        }
+        return false
+    } catch (err) { console.error(err) }
 }
 
 async function updateUser(req, res, fileExtension){
@@ -268,11 +284,10 @@ module.exports = {
             const {rows} = await connection.query(`select "lastDailyPacket" from "User" where id=$1`,[id]);
             if(rows.length == 0)
                 return res.status(404).json({error: "Usuário não encontrado"});
-            const yesterdayDateRes = await connection.query("select now()");
-            const yesterdayDate = new Date(yesterdayDateRes.rows[0].now);
-            yesterdayDate.setDate(yesterdayDate.getDate()-1);
+            const cooldownEnded = await verifyCooldown(req,res)
             const stickers = [];
-            if(rows[0].lastDailyPacket < yesterdayDate){
+            if(cooldownEnded){
+                console.log("YEY")
                 for(let i = 0; i < 5; i++){
                     let rarity = 1;
                     const random = Math.random();
@@ -341,7 +356,7 @@ module.exports = {
         });
     },
     async getUser(req,res){
-        const id = req.params.id;
+        const id = req.params.id
         try {
             const user = await connection.query(`select * from "User" where "id"=$1`,[id]);
             return res.json(user.rows)
