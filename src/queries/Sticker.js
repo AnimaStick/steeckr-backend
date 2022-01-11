@@ -102,8 +102,8 @@ module.exports = {
     async getAnimations(req,res){
         const title = req.params.title
         try {
-            const user = await connection.query(`select * from "Animation" where "title"=$1`,[title]);
-            return res.json(user.rows)
+            const search = await connection.query(`select * from "Animation" where lower("title")~lower($1)`,[title]);
+            return res.json(search.rows)
         } catch (e) {console.log(e)}
     },
 
