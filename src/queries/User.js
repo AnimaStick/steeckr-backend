@@ -355,9 +355,9 @@ module.exports = {
             const yesterdayDate = new Date(yesterdayDateRes.rows[0].now);
             yesterdayDate.setDate(yesterdayDate.getDate()-1);
             if(rows[0].lastDailyPacket < yesterdayDate) {
-                return res.status(200).json({message: "Usuário pode pegar um pack"});
+                return res.status(200).json({message: "S"});
             }
-            return res.status(400).json({message: "Usuário não pode pegar um pack"});
+            return res.status(200).json({message: "N"});
         } catch (err) { console.error(err) }
     },
     logout(req, res){
