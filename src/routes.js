@@ -30,6 +30,7 @@ router.post("/comments/:id", sessionChecker, Sticker.commentAnimation);
 //STICKERS
 router.post("/stickers",  Sticker.createAnimation);
 router.get("/stickers/:id", Sticker.showUserStickers);
+router.get("/stickerPossess/:id", Sticker.showUserPossessStickers);
 
 //USER ROUTES
 //ALGUMAS TEM sessionChecker e adminChecker para checar primeiro se está logado e depois se é adm

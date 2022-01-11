@@ -211,12 +211,23 @@ module.exports = {
             return res.status(400).json({error: error})
         })
     },
+    async showUserPossessStickers(req, res){
+        const id = req.params.id;
+        try{
+            const {rows} = await connection.query(`
+            select *, a.* from "User_Animation" ua
+                inner join "Animation" a on a.id=ua.id_animation
+                    where ua.id_user=$1
+            `, [id])
+            return res.status(200).json(rows)
+        } catch (e) { console.log(e) }
+    },
     async showUserStickers(req, res) {
         const id = req.params.id
         try{
             const {rows} = await connection.query(`
             select id, title, views, description, animation_path, price, rarity from "Animation" where ("price" is not null) and ("id_user" = $1)`, [id])
-            return res.json(rows)
+            return res.statu(200).json(rows)
         } catch (e) { console.log(e) }
     }
 }
