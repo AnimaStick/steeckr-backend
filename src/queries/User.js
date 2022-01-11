@@ -345,6 +345,21 @@ module.exports = {
         }
         
     },
+    async verifyCooldownUser(req, res) {
+        const id = req.params.id;
+        try {
+            const {rows} = await connection.query(`select "lastDailyPacket" from "User" where id=$1`,[id]);
+            if(rows.length == 0)
+                return res.status(404).json({error: "Usuário não encontrado"});
+            const yesterdayDateRes = await connection.query("select now()");
+            const yesterdayDate = new Date(yesterdayDateRes.rows[0].now);
+            yesterdayDate.setDate(yesterdayDate.getDate()-1);
+            if(rows[0].lastDailyPacket < yesterdayDate) {
+                return res.status(200).json({message: "Usuário pode pegar um pack"});
+            }
+            return res.status(400).json({message: "Usuário não pode pegar um pack"});
+        } catch (err) { console.error(err) }
+    },
     logout(req, res){
         req.session.destroy((err) => {
             if (err) {
