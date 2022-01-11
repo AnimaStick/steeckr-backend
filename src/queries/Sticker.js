@@ -154,6 +154,9 @@ module.exports = {
                     where a.id=$1
                         group by a.id  
                 `,[id]);
+            const updateViews = await connection.query(`
+                update "Animation" set views=views+1 where id=$1
+            `,[id])
             const animation = await connection.query(`select * from "Animation" where id=$1
             `,[id]);
             return res.json({animation:animation.rows, comments: countComment.rows[0].comments, likes: rows[0].likes})
