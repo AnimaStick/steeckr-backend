@@ -43,17 +43,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(routes);
 
 //CRIAÇÃO DE UMA CONTA DE ADMINISTRADOR, DE ACORDO COM VALORES DO .ENV
-connection.query(`delete from "User" where "isAdm"=true`).then(res => {
-    connection.query(`insert into "User"(username,email,"password",birthday, "isAdm") values ($1,$2,$3,$4, $5)`, [
-        process.env.USERNAME, process.env.EMAIL, encryptPassword(process.env.PASSWORD), process.env.BIRTHDAY, true
-    ]).catch(e => {
-        console.log("ADM account not created");
-        console.log(e);
-    });
-}).catch(e => {
-    console.log("ADM account not created");
-    console.log(e);
-});
+// connection.query(`delete from "User" where "isAdm"=true`).then(res => {
+//     connection.query(`insert into "User"(username,email,"password",birthday, "isAdm") values ($1,$2,$3,$4, $5)`, [
+//         process.env.USERNAME, process.env.EMAIL, encryptPassword(process.env.PASSWORD), process.env.BIRTHDAY, true
+//     ]).catch(e => {
+//         console.log("ADM account not created");
+//         console.log(e);
+//     });
+// }).catch(e => {
+//     console.log("ADM account not created");
+//     console.log(e);
+// });
 
 app.use("/files",express.static(path.join(__dirname, '../files')));
 
