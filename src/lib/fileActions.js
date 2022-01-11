@@ -14,9 +14,9 @@ module.exports = {
             }
         }
     },
-    writeProfilePic: function(username, fileBuffer, fileExtension){
+    writeProfilePic: function(username, fileBuffer, fileExtension,folder = "profile"){
         let fileName = `${Date.now()}-${username}.${fileExtension}`;
-        filePath = `./files/profile/${fileName}`;
+        filePath = `./files/${folder}/${fileName}`;
         try{
             fs.writeFileSync(filePath, fileBuffer);
         }catch(e){

@@ -16,6 +16,7 @@ const {sessionChecker, adminChecker, checkNoAdmAccess} = require("./lib/auth");
 //TESTES Animations
 
 router.post("/animations", Sticker.createAnimation);
+router.post("/uploadFile", uploadProfilePic.single("file"), Sticker.uploadFile)
 router.get("/animations", Sticker.showAllAnimations);
 router.get("/animation/:id", Sticker.getAnimation)
 router.get("/animations/:title", Sticker.getAnimations)
@@ -23,7 +24,7 @@ router.delete("/dropanimations", sessionChecker, adminChecker, Sticker.dropAllAn
 router.get("/getDailyPacket/:id", sessionChecker, User.getDailyStickerPack);
 router.get("/turnAnimationSticker", sessionChecker,adminChecker, Sticker.turnAnimationsSticker);
 //STICKERS
-router.post("/stickers", Sticker.createAnimation);
+router.post("/stickers",  Sticker.createAnimation);
 router.get("/stickers/:id", Sticker.showUserStickers);
 
 //USER ROUTES
