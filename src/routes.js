@@ -24,6 +24,9 @@ router.delete("/dropanimations", sessionChecker, adminChecker, Sticker.dropAllAn
 router.get("/getDailyPacket/:id", sessionChecker, User.getDailyStickerPack);
 router.get("/verifyCooldownUser/:id", sessionChecker, User.verifyCooldownUser);
 router.get("/turnAnimationSticker", sessionChecker,adminChecker, Sticker.turnAnimationsSticker);
+router.get("/getPostInformation/:id", sessionChecker, Sticker.getPostInformation);
+router.post("/like/:id", sessionChecker, Sticker.likeAnimation);
+router.post("/comments/:id", sessionChecker, Sticker.commentAnimation);
 //STICKERS
 router.post("/stickers",  Sticker.createAnimation);
 router.get("/stickers/:id", Sticker.showUserStickers);
